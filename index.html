@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>1억 모으기 시뮬레이터</title>
+<meta name="description" content="현재 자산과 매달 저축액만 넣으면 1억 원까지 걸리는 기간을 바로 계산해요. S&P 500·나스닥 100 과거 평균 수익률과도 비교해 보세요.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="1억 모으기 시뮬레이터">
+<meta property="og:description" content="현재 자산과 매달 저축액만 넣으면 1억 원까지 걸리는 기간을 바로 계산해요. S&P 500·나스닥 100 과거 평균 수익률과도 비교해 보세요.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%B0%3C/text%3E%3C/svg%3E">
+<!-- 분석 도구(Google Analytics 등) 스크립트는 정식 배포 후 이 위치에 붙이세요. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{--bg:#f3f5f2;--surface:#fff;--ink:#1b2a2f;--mute:#5f6f74;--line:#d9dfdc;--accent:#0f6e8c;--gold:#e8a712;--empty:#e4e9e6;--good:#1f8a5b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12191c;--surface:#1a2428;--ink:#e8eeec;--mute:#93a3a8;--line:#2c3a3f;--accent:#4cb8d8;--gold:#f2b83a;--empty:#26343a;--good:#4cc790}}
+:root[data-theme="dark"]{--bg:#12191c;--surface:#1a2428;--ink:#e8eeec;--mute:#93a3a8;--line:#2c3a3f;--accent:#4cb8d8;--gold:#f2b83a;--empty:#26343a;--good:#4cc790}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.6}
+main{max-width:920px;margin:0 auto;padding:28px 18px 56px}
+h1{font-size:15px;font-weight:700;color:var(--mute);margin:0 0 18px}
+h2{font-size:17px;margin:0 0 12px}
+.hero{display:grid;grid-template-columns:1fr 150px;gap:24px;align-items:end;margin-bottom:28px}
+.hero .big{font-size:clamp(34px,8vw,64px);font-weight:900;line-height:1.1;letter-spacing:-.03em;margin:0}
+.hero .sub{color:var(--mute);margin:10px 0 0;font-size:15px}
+.ladder{display:flex;flex-direction:column-reverse;gap:4px;height:190px}
+.ladder div{flex:1;background:var(--empty);border-radius:3px;position:relative}
+.ladder div.on{background:var(--gold)}
+.ladder div.part{background:linear-gradient(90deg,var(--gold) var(--p),var(--empty) var(--p))}
+.ladder span{position:absolute;right:calc(100% + 8px);top:50%;transform:translateY(-50%);font-size:11px;color:var(--mute);white-space:nowrap}
+.ladder{margin-left:44px}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+label{display:block;font-size:13px;color:var(--mute);margin:0 0 4px}
+.field{margin-bottom:14px}
+.row{display:flex;align-items:center;gap:8px}
+input[type=number],input[type=text]{width:100%;font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.unit{font-size:13px;color:var(--mute);white-space:nowrap}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--mute);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;margin-right:6px;vertical-align:middle;border-radius:2px}
+.whatif{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.whatif .panel{padding:14px}
+.whatif b{display:block;font-size:13px;color:var(--mute);font-weight:500}
+.whatif strong{font-size:22px;color:var(--good)}
+.whatif small{display:block;color:var(--mute);font-size:12px}
+section{margin-top:28px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--mute);font-weight:500;font-size:12px}
+td.r,th.r{text-align:right}
+.done{color:var(--good);font-weight:700}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:9px 14px;font-weight:700}
+button.ghost{background:transparent;color:var(--mute);border-color:var(--line);padding:3px 8px;font-weight:400;font-size:12px}
+.log{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px}
+.note{font-size:12px;color:var(--mute);margin-top:28px}
+.scroll{overflow-x:auto}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.ladder{height:150px;margin-right:0}.whatif{grid-template-columns:1fr}.log{grid-template-columns:1fr 1fr}.log button{grid-column:1/-1}}
+
+.cmp{display:grid;grid-template-columns:minmax(120px,1.2fr) 52px 1fr auto;gap:8px 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.cmp small{display:block;color:var(--mute);font-size:12px}.cmp .bar{height:10px;background:var(--empty);border-radius:3px;overflow:hidden}.cmp .bar i{display:block;height:100%;background:var(--accent)}.cmp.me .bar i{background:var(--gold)}.cmp .t{font-weight:700;white-space:nowrap;text-align:right}.cmp button{padding:3px 9px;font-size:12px}@media(max-width:720px){.cmp{grid-template-columns:1fr auto}.cmp .bar{grid-column:1/-1;order:5}.cmp .pct{display:none}}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}.plan{border:1px solid var(--line);border-radius:8px;padding:14px}.plan.pro{border-color:var(--gold);border-width:2px}.plan h3{margin:0 0 2px;font-size:15px}.plan .pr{font-size:20px;font-weight:900;margin:0 0 8px}.plan ul{margin:0;padding-left:18px;font-size:14px;color:var(--mute)}.wl label.o{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin:0 0 6px}.wl label.o input{width:18px;height:18px;accent-color:var(--accent)}.wl select{width:100%;font:inherit;font-size:16px;padding:9px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}#wlMsg{margin:10px 0 0;font-size:14px;min-height:1.4em}@media(max-width:720px){.plans{grid-template-columns:1fr}}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin:0 0 10px}.chk input{width:18px;height:18px;accent-color:var(--accent)}#frlBox{display:none;background:var(--bg);border-radius:6px;padding:10px;margin-bottom:14px}#frlBox.open{display:block}
+.wl textarea{width:100%;font:inherit;font-size:16px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+a.btn{display:inline-block;text-decoration:none;font-weight:700;color:#fff;background:var(--accent);border-radius:6px;padding:10px 18px}
+.ctas{display:flex;flex-wrap:wrap;gap:10px}
+a.btn.out{background:transparent;color:var(--accent);border:1px solid var(--accent);font-weight:500;font-size:14px;padding:9px 14px}
+.callout{margin:16px 0 0;padding:10px 12px;background:var(--bg);border-left:3px solid var(--gold);border-radius:4px;font-size:13px;font-weight:700;color:#b71c1c}
+.callout b{color:var(--ink);margin-right:8px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .callout{color:#ff8a80}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) a.btn:not(.out){color:#0b1316}}
+:root{--l1:#1565c0;--l2:#e4572e}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--l1:#64b5f6;--l2:#ff8a65}}:root[data-theme="dark"]{--l1:#64b5f6;--l2:#ff8a65}
+.legend i{height:4px}
+.cta{display:inline-block;margin-top:8px;font-size:14px;font-weight:700;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent)}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--surface);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.12);opacity:.9;transition:opacity .2s}
+.fab.hide{opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<main>
+<h1>1억 모으기 시뮬레이터</h1>
+
+<div class="hero">
+  <div>
+    <p class="big" id="headline">–</p>
+    <p class="sub" id="subline"></p>
+    <a href="https://naver.me/xPYAjSNB" target="_blank" rel="noopener" id="cta" class="cta"></a>
+  </div>
+  <div class="ladder" id="ladder" aria-label="1,000만원 단위 진행 단계"></div>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>내 조건</h2>
+    <p class="note" style="margin:0 0 14px;font-size:16px">목표 금액: 1억 원</p><input id="goal" type="hidden" value="10000">
+    <div class="field"><label for="start" style="color:var(--gold);font-weight:700">현재 모은 돈</label><div class="row"><input id="start" type="number" min="0" step="10" value="500"><span class="unit">만원</span></div></div>
+    <div class="field"><label for="monthly">매달 저축</label><div class="row"><input id="monthly" type="number" min="0" step="5" value="100"><span class="unit">만원</span></div></div>
+    <label class="chk"><input id="frl" type="checkbox">소득이 불규칙해요 (프리랜서)</label>
+    <div id="frlBox"><div class="field"><label for="lowMonths">1년 중 저축이 적은 달</label><div class="row"><input id="lowMonths" type="number" min="0" max="12" step="1" value="3"><span class="unit">개월</span></div></div><div class="field" style="margin:0"><label for="lowAmt">그 달의 저축액</label><div class="row"><input id="lowAmt" type="number" min="0" step="5" value="20"><span class="unit">만원</span></div></div><p class="note" style="margin:8px 0 0">위 '매달 저축'은 보통 달 기준이고, 연평균으로 계산해요.</p></div>
+    <div class="field"><label for="rate">연 수익률 가정: <span id="rateOut">3.0</span>%</label><input id="rate" type="range" min="0" max="25" step="0.1" value="3"></div>
+  </div>
+  <div class="panel">
+    <h2>자산 변화</h2>
+    <svg class="chart" id="chart" viewBox="0 0 560 280" role="img" aria-label="월별 자산 변화 그래프"></svg>
+    <div class="legend"><span><i style="background:var(--l1)"></i>예상 자산</span><span><i style="background:var(--l2)"></i>원금만 (이자 제외)</span></div>
+  </div>
+</div>
+
+<div class="whatif" id="whatif"></div>
+
+<section class="panel">
+  <h2>과거 수익률로 비교</h2>
+    <div id="cmp"></div>
+  <p class="note" style="margin-top:12px">연평균이 높아도 매년 그만큼 오르는 건 아니에요. S&amp;P 500은 2008년에 배당 포함 약 -37%였고, 나스닥 100은 변동성이 더 커서(연 약 23%) 하락기 낙폭도 더 컸어요. 모든 수치는 달러 기준 배당 재투자 총수익률 근사값이며, 환율·세금·수수료는 반영하지 않았어요. 출처: Nasdaq(2005~2025 연평균, 나스닥 100 15.7%, S&amp;P 500 11.0%).</p>
+</section>
+
+<section class="panel" id="contact">
+  <h2 style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px">궁금한 점 · 문의<span style="font-size:13px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 10px">답변은 운영자가 직접 드려요</span></h2>
+  <p style="margin:0 0 14px;font-size:15px">1억 원을 모으는 데 어려운 점이 있으신 분들은 여기에 문의 올려 주세요. 최선을 다해 상담해 드립니다.</p>
+  <div class="ctas">
+    <a class="btn" href="https://naver.me/xPYAjSNB" target="_blank" rel="noopener">문의하러 가기</a>
+    <a class="btn out" href="https://www.youtube.com/@%ED%8D%BC%EC%8A%A4%ED%8A%B810%EC%96%B5/community" target="_blank" rel="noopener">사용 중 궁금한 점, 오류, 바라는 기능이 있으면 남겨 주세요.</a>
+  </div>
+  <p class="callout"><b>중요</b>금융상품 추천이나 개인 투자 상담은 하지 않아요. 계좌번호, 주민등록번호 같은 민감한 정보는 적지 마세요.</p>
+</section>
+
+<p class="note">이 도구는 입력한 가정으로 계산하는 시뮬레이터예요. 수익률은 보장되지 않으며 특정 금융상품의 추천이나 투자 조언이 아니에요. 세금과 물가 상승은 반영하지 않았어요.</p>
+</main>
+<a href="#contact" id="fab" class="fab">문의하기</a>
+
+<script>
+var $=function(id){return document.getElementById(id)};
+var MAXM=1200;
+function sim(start,monthly,rate,goal){
+  var r=rate/100/12,b=start,arr=[b],hit=b>=goal?0:-1;
+  for(var m=1;m<=MAXM;m++){b=b*(1+r)+monthly;arr.push(b);if(hit<0&&b>=goal)hit=m;if(hit>=0&&m>=hit+12&&m>=24)break}
+  return{arr:arr,hit:hit}
+}
+function monthsTo(start,monthly,rate,target){
+  var r=rate/100/12,b=start;if(b>=target)return 0;
+  for(var m=1;m<=MAXM;m++){b=b*(1+r)+monthly;if(b>=target)return m}
+  return -1
+}
+function won(v){
+  v=Math.round(v);var eok=Math.floor(v/10000),man=v%10000,s='';
+  if(eok)s+=eok.toLocaleString('ko-KR')+'억';
+  if(man)s+=(s?' ':'')+man.toLocaleString('ko-KR')+'만';
+  return (s||'0')+'원'
+}
+function dur(m){
+  if(m<0)return '100년 이상';if(m===0)return '이미 달성';
+  var y=Math.floor(m/12),mm=m%12;
+  return (y?y+'년 ':'')+(mm?mm+'개월':'')
+}
+function addMonths(n){var d=new Date();d.setDate(1);d.setMonth(d.getMonth()+n);return d.getFullYear()+'년 '+(d.getMonth()+1)+'월'}
+function val(id){var v=parseFloat($(id).value);return isFinite(v)&&v>=0?v:0}
+
+function render(){
+  var goal=Math.max(val('goal'),100),start=val('start'),monthly=baseMonthly(),rate=parseFloat($('rate').value)||0;
+  $('rateOut').textContent=rate.toFixed(1);
+  var s=sim(start,monthly,rate,goal),m=s.hit;
+  var goalLabel=won(goal).replace('원','');
+  $('headline').textContent=m===0?goalLabel+' 달성!':(m<0?'100년 넘게 걸려요':goalLabel+'까지 '+dur(m));
+  $('subline').textContent=m>0?('예상 달성 시점: '+addMonths(m)+' · 지금 '+won(start)+', 매달 '+won(monthly)+' 저축 기준'):(m<0?'매달 저축액을 늘려 보세요.':'');
+
+  // ladder: 10 steps
+  var step=goal/10,L=$('ladder');L.innerHTML='';
+  for(var i=1;i<=10;i++){
+    var d=document.createElement('div'),lo=step*(i-1),hi=step*i;
+    if(start>=hi)d.className='on';else if(start>lo){d.className='part';d.style.setProperty('--p',((start-lo)/step*100)+'%')}
+    var sp=document.createElement('span');sp.textContent=won(hi);d.appendChild(sp);L.appendChild(d)
+  }
+
+  // what-if
+  var w=$('whatif');w.innerHTML='';
+  var base=m<0?MAXM:m;
+  [['매달 +10만원',monthly+10,rate],['수익률 +1%p',monthly,rate+1],['둘 다',monthly+10,rate+1]].forEach(function(c){
+    var mm=monthsTo(start,c[1],c[2],goal),sv=(m<0?MAXM:m)-(mm<0?MAXM:mm);
+    var p=document.createElement('div');p.className='panel';
+    p.innerHTML='<b>'+c[0]+'</b><strong>'+(m===0?'–':sv>0?dur(sv)+' 단축':'변화 없음')+'</strong><small>'+(mm<=0?'':'달성까지 '+dur(mm))+'</small>';
+    w.appendChild(p)
+  });
+
+  drawChart(s,start,monthly,goal);renderCmp(start,monthly,goal,rate);setCta(m);
+}
+
+function drawChart(s,start,monthly,goal){
+  var W=560,H=280,pl=54,pr=12,pt=12,pb=28,arr=s.arr,n=arr.length-1;
+  var maxY=Math.max(goal*1.05,arr[n]);
+  function X(i){return pl+(W-pl-pr)*i/Math.max(n,1)}
+  function Y(v){return H-pb-(H-pt-pb)*v/maxY}
+  var out='';
+  for(var k=0;k<=4;k++){var v=maxY*k/4,y=Y(v);out+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(pl-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="var(--mute)">'+(v>=10000?(v/10000).toFixed(1).replace('.0','')+'억':Math.round(v/10)*10+'만')+'</text>'}
+  var yrs=Math.ceil(n/12),stepY=yrs>20?5:yrs>10?2:1;
+  for(var yy=0;yy<=yrs;yy+=stepY){if(yy*12<=n)out+='<text x="'+X(yy*12)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="var(--mute)">'+yy+'년</text>'}
+  out+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(goal)+'" y2="'+Y(goal)+'" stroke="var(--gold)" stroke-dasharray="5 4"/>';
+  var p1='',p2='';
+  for(var i=0;i<=n;i++){p1+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(arr[i]).toFixed(1);p2+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(start+monthly*i).toFixed(1)}
+  out+='<path d="'+p2+'" fill="none" stroke="var(--l2)" stroke-width="3" stroke-dasharray="7 5"/><path d="'+p1+'" fill="none" stroke="var(--l1)" stroke-width="4.5" stroke-linecap="round"/>';
+  if(s.hit>0)out+='<circle cx="'+X(s.hit)+'" cy="'+Y(goal)+'" r="5" fill="var(--gold)"/>';
+  $('chart').innerHTML=out
+}
+
+['goal','start','monthly','rate','lowAmt','lowMonths'].forEach(function(id){$(id).addEventListener('input',render)});
+function baseMonthly(){
+  var m=val('monthly');
+  if($('frl').checked){var lm=Math.min(12,val('lowMonths')),la=val('lowAmt');return (la*lm+m*(12-lm))/12}
+  return m
+}
+$('frl').addEventListener('change',function(){$('frlBox').classList.toggle('open',$('frl').checked);render()});
+var CASES=[{n:'내 가정',s:'위 슬라이더 값',r:null},{n:'S&P 500 평균',s:'최근 20년 연평균',r:11.0},{n:'나스닥 100 평균',s:'최근 20년 연평균',r:15.7}];
+function renderCmp(start,monthly,goal,rate){
+  var box=$('cmp');box.innerHTML='';
+  var rows=CASES.map(function(c){var r=c.r===null?rate:c.r;return{c:c,r:r,m:monthsTo(start,monthly,r,goal)}});
+  var mx=Math.max.apply(null,rows.map(function(x){return x.m<0?MAXM:x.m}).concat([1]));
+  rows.forEach(function(x){
+    var d=document.createElement('div');d.className='cmp'+(x.c.r===null?' me':'');
+    d.innerHTML='<div><span class="nm"></span><small></small></div><div class="pct">'+x.r.toFixed(1)+'%</div><div class="bar"><i style="width:'+((x.m<0?MAXM:x.m)/mx*100)+'%"></i></div><div class="t">'+dur(x.m)+'</div>';
+    d.querySelector('.nm').textContent=x.c.n;d.querySelector('small').textContent=x.c.s;
+    if(x.c.r!==null){var b=document.createElement('button');b.type='button';b.className='ghost';b.textContent='내 가정에 적용';b.onclick=function(){$('rate').value=x.r;render()};d.querySelector('.t').appendChild(document.createElement('br'));d.querySelector('.t').appendChild(b)}
+    box.appendChild(d)
+  })
+}
+function setCta(m){
+  var t;
+  if(m===0)t='목표를 이미 달성했어요! 궁금한 점이 있다면 남겨 주세요 →';
+  else if(m<0)t='목표가 멀게 느껠지시나요? 어려운 점을 남겨 주세요 →';
+  else if(m>=60)t=dur(m)+'이 길게 느껠지시나요? 어려운 점을 남겨 주세요 →';
+  else if(m>=36)t='더 빨리 가는 방법이 궁금하신가요? 막막한 점을 남겨 주세요 →';
+  else t='목표가 가까워요! 궁금한 점이 있다면 남겨 주세요 →';
+  $('cta').textContent=t
+}
+function goContact(e){e.preventDefault();$('contact').scrollIntoView({behavior:'smooth',block:'start'})}
+$('fab').onclick=goContact;
+try{if('IntersectionObserver' in window){new IntersectionObserver(function(en){$('fab').classList.toggle('hide',en[0].isIntersecting)}).observe($('contact'))}}catch(e){}
+render();
+</script>
+</body>
+</html>
